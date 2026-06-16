@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrector de texto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffebae;
+      --surface: #FFFFFF;
+      --border: #E4E2DD;
+      --text: #1A1A18;
+      --muted: #6B6B67;
+      --accent: #e6e44d;
+      --accent-light: #EAF3DE;
+      --accent-text: #1D4D2E;
+      --warn: #854F0B;
+      --warn-bg: #FAEEDA;
+      --error: #A32D2D;
+      --error-bg: #FCEBEB;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { width: 16px; height: 16px; fill: white; }
+
+    header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    header span {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .tab-btn svg { width: 15px; height: 15px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+
+    .char-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .char-count { font-size: 12px; color: var(--muted); }
+
+    .clear-btn {
+      font-size: 12px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .clear-btn:hover { color: var(--error); }
+
+    .drop-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 14px;
+      transition: all 0.15s;
+      background: var(--bg);
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .drop-zone svg { width: 32px; height: 32px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; color: var(--muted); }
+
+    #preview-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: var(--radius);
+      margin-top: 12px;
+      display: none;
+      border: 1px solid var(--border);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .submit-btn:hover { opacity: 0.88; }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .submit-btn svg { width: 16px; height: 16px; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-top: 1.25rem;
+    }
+
+    .result-header {
+      padding: 12px 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .result-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--accent);
+      font-weight: 500;
+      background: none;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: var(--accent-light); }
+    .copy-btn svg { width: 13px; height: 13px; }
+
+    .corrected-text {
+      padding: 1.25rem;
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+
+    .corrections-list {
+      padding: 0.75rem 1.25rem 1.25rem;
+    }
+
+    .corrections-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+
+    .correction-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .correction-item:last-child { border-bottom: none; }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-ortografia { background: var(--error-bg); color: var(--error); }
+    .badge-gramatica  { background: var(--warn-bg);  color: var(--warn); }
+    .badge-estilo     { background: var(--accent-light); color: var(--accent-text); }
+
+    .no-errors {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--accent-text);
+      font-weight: 500;
+      padding: 8px 0;
+    }
+
+    .no-errors svg { width: 18px; height: 18px; color: var(--accent); }
+
+    .error-toast {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #F09595;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    @media (max-width: 480px) {
+      main { padding: 1rem 0.75rem 3rem; }
+      .card { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">
+    <svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h12"/></svg>
+  </div>
+  <h1>Corrector <span>con IA</span></h1>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('text')" id="tab-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+      Texto
+    </button>
+    <button class="tab-btn" onclick="switchTab('image')" id="tab-image">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      Imagen
+    </button>
+  </div>
+
+  <div id="panel-text" class="panel active">
+    <div class="card">
+      <textarea id="text-input" placeholder="Pega aquí el mensaje de WhatsApp, correo, o cualquier texto que quieras corregir..." oninput="updateCount()"></textarea>
+      <div class="char-row">
+        <span class="char-count"><span id="char-count">0</span> caracteres</span>
+        <button class="clear-btn" onclick="clearText()">Limpiar</button>
+      </div>
+      <button class="submit-btn" onclick="correctText()" id="btn-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg>
+        Corregir texto
+      </button>
+    </div>
+  </div>
+
+  <div id="panel-image" class="panel">
+    <div class="card">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('img-input').click()" ondrop="handleDrop(event)" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <strong style="display:block; font-size:14px; color:var(--text); margin-bottom:4px;">Subir imagen</strong>
+        Haz clic o arrastra una captura de pantalla, foto de mensaje, etc.
+      </div>
+      <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleFile(this.files[0])">
+      <img id="preview-img" alt="Vista previa">
+      <button class="submit-btn" onclick="correctImage()" id="btn-image" style="display:none; margin-top:12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg>
+        Corregir imagen
+      </button>
+    </div>
+  </div>
+
+  <div class="error-toast" id="error-toast"></div>
+
+  <div class="result-card" id="result-area" style="display:none">
+    <div class="result-header">
+      <h2>Texto corregido</h2>
+      <button class="copy-btn" onclick="copyText()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span id="copy-label">Copiar</span>
+      </button>
+    </div>
+    <div class="corrected-text" id="corrected-out"></div>
+    <div class="corrections-list">
+      <div class="corrections-title">Correcciones</div>
+      <div id="errors-out"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  let imageData = null;
+  let imageType = null;
+
+  function switchTab(tab) {
+    document.getElementById('tab-text').classList.toggle('active', tab === 'text');
+    document.getElementById('tab-image').classList.toggle('active', tab === 'image');
+    document.getElementById('panel-text').classList.toggle('active', tab === 'text');
+    document.getElementById('panel-image').classList.toggle('active', tab === 'image');
+    document.getElementById('result-area').style.display = 'none';
+  }
+
+  function updateCount() {
+    document.getElementById('char-count').textContent = document.getElementById('text-input').value.length;
+  }
+
+  function clearText() {
+    document.getElementById('text-input').value = '';
+    document.getElementById('char-count').textContent = '0';
+    document.getElementById('result-area').style.display = 'none';
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) handleFile(f);
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    imageType = file.type;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imageData = e.target.result.split(',')[1];
+      const img = document.getElementById('preview-img');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById('btn-image').style.display = 'flex';
+      document.getElementById('result-area').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    if (loading) {
+      btn.innerHTML = '<div class="spinner"></div> Analizando...';
+    } else if (btnId === 'btn-text') {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg> Corregir texto`;
+    } else {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg> Corregir imagen`;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-toast');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 5000);
+  }
+
+  function renderResult(parsed) {
+    document.getElementById('corrected-out').textContent = parsed.corrected || '';
+    const container = document.getElementById('errors-out');
+    container.innerHTML = '';
+
+    if (!parsed.corrections || parsed.corrections.length === 0) {
+      container.innerHTML = `<div class="no-errors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ¡Sin errores! El texto estaba bien escrito.</div>`;
+    } else {
+      parsed.corrections.forEach(c => {
+        const badgeClass = c.type === 'ortografia' ? 'badge-ortografia' : c.type === 'gramatica' ? 'badge-gramatica' : 'badge-estilo';
+        const label = c.type === 'ortografia' ? 'Ortografía' : c.type === 'gramatica' ? 'Gramática' : 'Estilo';
+        const div = document.createElement('div');
+        div.className = 'correction-item';
+        div.innerHTML = `<span class="badge ${badgeClass}">${label}</span><span>${c.explanation}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('result-area').style.display = 'block';
+    document.getElementById('result-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function callAPI(messages) {
+    const system = `Eres un corrector ortográfico y gramatical experto en español latinoamericano.
+Corrige el texto y devuelve SOLO JSON válido sin backticks:
+{
+  "corrected": "texto completamente corregido",
+  "corrections": [
+    {"type": "ortografia", "explanation": "descripción específica del error y su corrección"},
+    {"type": "gramatica", "explanation": "error gramatical encontrado"},
+    {"type": "estilo", "explanation": "sugerencia de claridad o estilo"}
+  ]
+}
+Si no hay errores devuelve corrections como array vacío. Sé específico y educativo en las explicaciones.`;
+
+    const res = await fetch('/api/correct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages })
+    });
+
+    if (!res.ok) throw new Error('Error del servidor');
+    const data = await res.json();
+    return JSON.parse(data.text.replace(/```json|```/g, '').trim());
+  }
+
+  async function correctText() {
+    const txt = document.getElementById('text-input').value.trim();
+    if (!txt) { showError('Escribe o pega un texto primero.'); return; }
+    setLoading('btn-text', true);
+    try {
+      const parsed = await callAPI([{ role: 'user', content: `Corrige este texto:\n\n${txt}` }]);
+      renderResult(parsed);
+    } catch (e) { showError('Ocurrió un error. Intenta de nuevo.'); }
+    setLoading('btn-text', false);
+  }
+
+  async function correctImage() {
+    if (!imageData) return;
+    setLoading('btn-image', true);
+    try {
+      const parsed = await callAPI([{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: imageType, data: imageData } },
+          { type: 'text', text: 'Extrae todo el texto de esta imagen y corrígelo. Si hay múltiples mensajes, corrígelos todos como un solo bloque de texto.' }
+        ]
+      }]);
+      renderResult(parsed);
+    } catch (e) { showError('No se pudo procesar la imagen. Intenta con otra.'); }
+    setLoading('btn-image', false);
+  }
+
+  function copyText() {
+    const t = document.getElementById('corrected-out').textContent;
+    navigator.clipboard.writeText(t).then(() => {
+      document.getElementById('copy-label').textContent = '¡Copiado!';
+      setTimeout(() => document.getElementById('copy-label').textContent = 'Copiar', 2000);
+    });
+  }
+</script>
+</body>
+</html>
